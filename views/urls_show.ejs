@@ -22,6 +22,27 @@
         </p>
       </div>
       <div class="card-footer text-muted"></div>
+      <!-- edit box -->
+
+
+      <div class="card-header" style="padding: 0%; ">
+        <h4 style="color: rgb(116, 115, 115)">Edit</h4>
+        <p class="card-text">
+
+
+          <form  action="/urls/edit/<%= id %>" method="POST">
+            <div class="form-group mb-2">
+              <label for="longURL">New URL:</label>
+              <input name="longURL"
+                placeholder="http://"
+              />
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </form>
+
+
+        </p>
+      </div>
     </div>
 
     <!-- Bootstrap JS -->
