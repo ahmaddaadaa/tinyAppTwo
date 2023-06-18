@@ -38,6 +38,16 @@ app.post("/urls", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body);
+  res.redirect("/urls");
+});
+
+
+
+
+
+
 app.post("/urls/edit/:id", (req, res) => {
   const id = req.params.id; // Retrieve the ID from the request parameters
   const newURL = req.body.longURL; 
