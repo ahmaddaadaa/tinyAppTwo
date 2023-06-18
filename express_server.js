@@ -54,6 +54,13 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  
+  res.redirect("/urls");
+});
+
+
 
 app.post("/urls/edit/:id", (req, res) => {
   const id = req.params.id; // Retrieve the ID from the request parameters
