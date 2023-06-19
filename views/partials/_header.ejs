@@ -21,18 +21,19 @@
 
     <% if(user === undefined) { %>
       <p class="navbar-nav" style="margin-right: 10px;">Please login or register!</p>
-      <form action="/login" style="margin-right: 10px;" method="GET">
-        <button type="submit">Login</button>
-      </form>
-      <form action="/register" method="GET">
-        <button type="submit">Register</button>
-      </form>
+      
       <% } else { %>
         <p class="navbar-nav" style="margin-right: 10px;">Logged in as: <%= user.email %>!</p>
         <form action="/logout" method="POST">
           <button type="submit" style="margin-right: 10px;">Logout</button>
         </form>
         <% } %>
+        <form action="/login" style="margin-right: 10px;" method="GET">
+          <button type="submit">Login</button>
+        </form>
+        <form action="/register" method="GET">
+          <button type="submit">Register</button>
+        </form>
   
 
 

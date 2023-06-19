@@ -98,6 +98,10 @@ app.get("/urls/new", (req, res) => {
 
 // GET /login
 app.get("/login", (req, res) => {
+  if(req.cookies.user_id !== undefined){
+    res.redirect("/urls");
+    return;
+  }
   res.render("login");
 });
 
@@ -105,6 +109,10 @@ app.get("/login", (req, res) => {
 
 // GET /register
 app.get("/register", (req, res) => {
+  if(req.cookies.user_id !== undefined){
+    res.redirect("/urls");
+    return;
+  }
   res.render("register");
 });
 
