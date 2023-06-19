@@ -15,9 +15,20 @@ app.use(cookieParser());
 
 // Database:
 
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// };
+
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 const users = {
@@ -75,6 +86,9 @@ app.get("/urls", (req, res) => {
 // GET /urls/new
 app.get("/urls/new", (req, res) => {
   let id = req.cookies.user_id;
+  if(id === undefined){
+    res.redirect("/login");
+  }
   let user = users[id];
   const templateVars = {
     user: user
@@ -103,7 +117,15 @@ app.get("/register", (req, res) => {
 
 // GET /u/:id
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
+  let idFound = null;
+  for(let key in urlDatabase){
+    if(key === req.params.id) idFound = key;
+  }
+  if (!idFound){
+    res.status(400).send("Not found!! Double check the Short Link Id.");
+    return;
+  }
+  const longURL =  urlDatabase[req.params.id].longURL;
   res.redirect(longURL);
 });
 
@@ -111,7 +133,7 @@ app.get("/u/:id", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   let id = req.cookies.user_id;
   let user = users[id];
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id], user: user };
+  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id].longURL, user: user };
   res.render("urls_show", templateVars);
 });
 
@@ -131,9 +153,19 @@ app.get("/urls/:id", (req, res) => {
 // POST /urls
 app.post("/urls", (req, res) => {
   let id = req.cookies.user_id;
+  let userFound = null;
+  if(id === undefined ) {
+   res.status(401).send("Unauthorized. please log in.");
+   return;
+  };
+
+
   let user = users[id];
   const generatedKey = generateRandomString();
-  urlDatabase[generatedKey] = req.body.longURL;
+  urlDatabase[generatedKey] = {
+    longURL: req.body.longURL,
+    userID: id
+  };
   const templateVars = { id: generatedKey, longURL: req.body.longURL, user: user };
   res.render("urls_show", templateVars);
 });
@@ -143,7 +175,7 @@ app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
-  // did we not get a username and a passward??
+  // we did not get a username and a passward??
   if (!email || !password) {
     res.status(400).send('Please provide a username and a password');
   }
@@ -232,7 +264,7 @@ app.post("/urls/edit/:id", (req, res) => {
   let id_user = req.cookies.user_id;
   let user = users[id_user];
 
-  urlDatabase[id] = newURL;
+  urlDatabase[id].longURL = newURL;
 
   const templateVars = { id: id, longURL: newURL, user: user };
   res.render("urls_show", templateVars);
