@@ -4,6 +4,8 @@ const bcrypt = require("bcryptjs");
 //const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 
+const relpers = require("./helpers.js");
+
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -50,6 +52,8 @@ const users = {
     password: "dishwasher-funk",
   },
 };
+
+
 
 // function checks if an Id exists in the URLs Database
 const verifyIfIdExists = function(id, database) {
