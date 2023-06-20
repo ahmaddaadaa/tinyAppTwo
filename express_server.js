@@ -1,5 +1,6 @@
 const express = require("express");
 const morgan = require('morgan');
+const bcrypt = require("bcryptjs");
 const cookieParser = require('cookie-parser');
 
 const app = express();
@@ -117,7 +118,7 @@ app.get("/urls", (req, res) => {
     message: message,
     flag: flag
   };
-
+  console.log("users :"+JSON.stringify(users));
   res.render("urls_index", templateVars);
 
 });
@@ -261,6 +262,7 @@ app.post("/login", (req, res) => {
   // we did not get a username and a passward??
   if (!email || !password) {
     res.status(400).send('Please provide a username and a password');
+    return;
   }
 
   // lookup username and password:
@@ -276,12 +278,21 @@ app.post("/login", (req, res) => {
   // did we not found the user?
   if (!founduser) {
     res.status(403).send('no user with that username found');
+    return;
   }
 
   // do the password not match ?
 
-  if (founduser.password !== password) {
+  // if (founduser.password !== password) {
+  //   res.status(403).send('passward do not match');
+
+  // }
+
+    if (bcrypt.compareSync(password, founduser.password) === false) {
+    console.log("Password: "+password+". encrypted: "+founduser.password);
+    console.log("Password matched?? :"+bcrypt.compareSync(password, founduser.password));
     res.status(403).send('passward do not match');
+    return;
 
   }
 
@@ -325,7 +336,7 @@ app.post("/register", (req, res) => {
 
 
   const generatedUserID = generateRandomString();
-  users[generatedUserID] = { id: generatedUserID, email: req.body.email, password: req.body.password };
+  users[generatedUserID] = { id: generatedUserID, email: req.body.email, password: bcrypt.hashSync(req.body.password, 10) };
 
 
   
