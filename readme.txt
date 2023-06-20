@@ -1,36 +1,24 @@
-    <!-- Login Form -->
-    
-    <% if(username === undefined) { %>
-    <form  action="/login" method="POST">
-      <form  action="/login" method="POST"> </form>
-      <input  type="text" name="username" placeholder="Username">
-      <button  type="submit" style="margin-right: 10px;">Login</button>
-    </form>
-    
-  
-  <% } else { %>
-    <p class="navbar-nav" style="margin-right: 10px;">Logged in as: <%= username['username'] %>!</p>
-    <form action="/logout" method="POST">
-      <button type="submit" style="margin-right: 10px;">Logout</button>
-    </form>
-  <% } %>
-  <form action="/register" method="GET">
-    <button type="submit">Register</button>
-  </form>
+# TinyApp Project
+
+TinyApp is a full stack web application built with Node and Express that allows users to shorten long URLs (à la bit.ly).
+
+## Final Product
+
+<img src="images/tinyapp.png" width = 80px >
+
+!["homepage when not logged in"](images/tinyapp.png)
 
 
 
-    <% if(users['userId'] === undefined) { %>
-    <p class="navbar-nav" style="margin-right: 10px;">Please login or register!</p>
-    <form action="/login" style="margin-right: 10px;" method="GET">
-      <button type="submit">Login</button>
-    </form>
-    <form action="/register" method="GET">
-      <button type="submit">Register</button>
-    </form>
-    <% } else { %>
-      <p class="navbar-nav" style="margin-right: 10px;">Logged in as: <%= users['userId'] %>!</p>
-      <form action="/logout" method="POST">
-        <button type="submit" style="margin-right: 10px;">Logout</button>
-      </form>
-      <% } %>
+## Dependencies
+
+- Node.js
+- Express
+- EJS
+- bcryptjs
+- cookie-session
+
+## Getting Started
+
+- Install all dependencies (using the `npm install` command).
+- Run the development web server using the `node express_server.js` command.
