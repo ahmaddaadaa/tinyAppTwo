@@ -1,7 +1,8 @@
 const express = require("express");
 const morgan = require('morgan');
 const bcrypt = require("bcryptjs");
-const cookieParser = require('cookie-parser');
+//const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -11,7 +12,12 @@ app.set("view engine", "ejs"); // set us a view engine for our EJS files
 //middleware
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: true })); // populates: req.body
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'user_id',
+  keys: ['myKey']
+  // cookie options:
+ // maxAge: 24 * 60 * 1000 // 24 hours
+}));
 
 
 const urlDatabase = {
@@ -89,7 +95,7 @@ const urlsForUser = function(id, database) {
 
 // GET /urls
 app.get("/urls", (req, res) => {
-  let id = req.cookies.user_id;
+  let id = req.session.user_id;
   let message = " ";
   let flag = 0;
   let userUrlsDatabase = urlsForUser(id, urlDatabase);
@@ -125,7 +131,7 @@ app.get("/urls", (req, res) => {
 
 // GET /urls/new
 app.get("/urls/new", (req, res) => {
-  let id = req.cookies.user_id;
+  let id = req.session.user_id;
   if (id === undefined) {
     res.redirect("/login");
   }
@@ -138,7 +144,7 @@ app.get("/urls/new", (req, res) => {
 
 // GET /login
 app.get("/login", (req, res) => {
-  if (req.cookies.user_id !== undefined) {
+  if (req.session.user_id !== undefined) {
     res.redirect("/urls");
     return;
   }
@@ -149,7 +155,7 @@ app.get("/login", (req, res) => {
 
 // GET /register
 app.get("/register", (req, res) => {
-  if (req.cookies.user_id !== undefined) {
+  if (req.session.user_id !== undefined) {
     res.redirect("/urls");
     return;
   }
@@ -180,7 +186,7 @@ app.get("/u/:id", (req, res) => {
 // GET /urls/:id
 app.get("/urls/:id", (req, res) => {
 
-  let idUser = req.cookies.user_id;
+  let idUser = req.session.user_id;
   let id = req.params.id;
   let message = "";
   let user = users[idUser];
@@ -225,7 +231,7 @@ app.get("/urls/:id", (req, res) => {
 
 // POST /urls
 app.post("/urls", (req, res) => {
-  let idUser = req.cookies.user_id;
+  let idUser = req.session.user_id;
   //let id = req.params.id;
   let user = users[idUser];
   let generatedKey = '';
@@ -299,7 +305,8 @@ app.post("/login", (req, res) => {
   //happy path!! the user and password found
 
   // set a cookie
-  res.cookie('user_id', founduser.id);
+  //res.cookie('user_id', founduser.id);
+  req.session.user_id = founduser.id;
 
   // redirect to /urls
   res.redirect('/urls');
@@ -312,7 +319,8 @@ app.post("/login", (req, res) => {
 
 // POST / logout
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  //res.clearCookie("user_id");
+  req.session = null;
   res.redirect("/urls");
 });
 
@@ -340,7 +348,8 @@ app.post("/register", (req, res) => {
 
 
   
-  res.cookie('user_id', generatedUserID);
+  //res.cookie('user_id', generatedUserID);
+  req.session.user_id = generatedUserID;
 
   res.redirect("/urls");
 });
@@ -355,7 +364,7 @@ app.post("/register", (req, res) => {
 app.post("/urls/edit/:id", (req, res) => {
   const id = req.params.id; // Retrieve the ID from the request parameters
   const newURL = req.body.longURL;
-  let idUser = req.cookies.user_id;
+  let idUser = req.session.user_id;
   let user = users[idUser];
   let flag = 0;
   let message = '';
@@ -370,7 +379,7 @@ app.post("/urls/edit/:id", (req, res) => {
 
 // POST /urls/:id/delete
 app.post("/urls/:id/delete", (req, res) => {
-  let id = req.cookies.user_id;
+  let id = req.session.user_id;
   let user = users[id];
   let flag = 0;
   let message = " ";
