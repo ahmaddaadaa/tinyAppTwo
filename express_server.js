@@ -13,13 +13,6 @@ app.use(express.urlencoded({ extended: true })); // populates: req.body
 app.use(cookieParser());
 
 
-// Database:
-
-// const urlDatabase = {
-//   "b2xVn2": "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com"
-// };
-
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -28,7 +21,14 @@ const urlDatabase = {
   i3BoGr: {
     longURL: "https://www.google.ca",
     userID: "aJ48lW",
+
   },
+
+  shortId: {
+    longURL: "ahmaddaadaa.ca",
+    userID: "userRandomID",
+  }
+
 };
 
 const users = {
@@ -42,6 +42,15 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk",
   },
+};
+
+// function checks if an Id exists in the URLs Database
+const verifyIfIdExists = function(id, database) {
+  for (const key in database) {
+    if (key === id) {
+      return true;
+    }
+  }
 };
 
 // function to generate String ID
@@ -58,6 +67,15 @@ const getUserByEmail = function(email) {
   }
 };
 
+const urlsForUser = function(id, database) {
+  let result = {};
+  for (let key in database) {
+    if (database[key].userID === id)
+      result[key] = database[key].longURL;
+
+  };
+  return result;
+};
 
 /////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////
@@ -71,22 +89,43 @@ const getUserByEmail = function(email) {
 // GET /urls
 app.get("/urls", (req, res) => {
   let id = req.cookies.user_id;
-  let user = users[id];
+  let message = " ";
+  let flag = 0;
+  let userUrlsDatabase = urlsForUser(id, urlDatabase);
+  const user = users[id];
+  // if not logged in:
+  if (id === undefined) {
+    res.status(403);
+    message = "Can't show the URLs page. Login or Register first!";
+    flag = 1;
+  }
+
+  else {
+    if (Object.values(userUrlsDatabase).length === 0) {
+      flag = 1;
+      message = "No URLs found!! Start creating new ones!";
+    }
 
 
-  const templateVars = {
-    urls: urlDatabase,
-    user: user
   };
 
 
+  const templateVars = {
+    urls: userUrlsDatabase,
+    user: user,
+    id: id,
+    message: message,
+    flag: flag
+  };
+
   res.render("urls_index", templateVars);
+
 });
 
 // GET /urls/new
 app.get("/urls/new", (req, res) => {
   let id = req.cookies.user_id;
-  if(id === undefined){
+  if (id === undefined) {
     res.redirect("/login");
   }
   let user = users[id];
@@ -98,7 +137,7 @@ app.get("/urls/new", (req, res) => {
 
 // GET /login
 app.get("/login", (req, res) => {
-  if(req.cookies.user_id !== undefined){
+  if (req.cookies.user_id !== undefined) {
     res.redirect("/urls");
     return;
   }
@@ -109,7 +148,7 @@ app.get("/login", (req, res) => {
 
 // GET /register
 app.get("/register", (req, res) => {
-  if(req.cookies.user_id !== undefined){
+  if (req.cookies.user_id !== undefined) {
     res.redirect("/urls");
     return;
   }
@@ -126,22 +165,47 @@ app.get("/register", (req, res) => {
 // GET /u/:id
 app.get("/u/:id", (req, res) => {
   let idFound = null;
-  for(let key in urlDatabase){
-    if(key === req.params.id) idFound = key;
+  for (let key in urlDatabase) {
+    if (key === req.params.id) idFound = key;
   }
-  if (!idFound){
+  if (!idFound) {
     res.status(400).send("Not found!! Double check the Short Link Id.");
     return;
   }
-  const longURL =  urlDatabase[req.params.id].longURL;
+  const longURL = urlDatabase[req.params.id].longURL;
   res.redirect(longURL);
 });
 
 // GET /urls/:id
 app.get("/urls/:id", (req, res) => {
-  let id = req.cookies.user_id;
-  let user = users[id];
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id].longURL, user: user };
+
+  let idUser = req.cookies.user_id;
+  let id = req.params.id;
+  let message = "";
+  let user = users[idUser];
+  let flag = 0;
+
+  if (idUser === undefined) {
+    res.status(403);
+    message = "Can't show the URLs page. Login or Register first!";
+    flag = 1;
+  }
+
+  if (!verifyIfIdExists(id, urlDatabase)) {
+    res.status(403);
+    message = "the URL id does not exist";
+    flag = 1;
+  }
+
+  if (idUser !== urlDatabase[id].userID) {
+    res.status(403);
+    message = "You don't own the URL";
+    flag = 1;
+  }
+
+  const templateVars = { id: id, longURL: urlDatabase[id].longURL, user: user, message: message, flag: flag, idUser: idUser };
+
+
   res.render("urls_show", templateVars);
 });
 
@@ -160,22 +224,33 @@ app.get("/urls/:id", (req, res) => {
 
 // POST /urls
 app.post("/urls", (req, res) => {
-  let id = req.cookies.user_id;
-  let userFound = null;
-  if(id === undefined ) {
-   res.status(401).send("Unauthorized. please log in.");
-   return;
-  };
+  let idUser = req.cookies.user_id;
+  //let id = req.params.id;
+  let user = users[idUser];
+  let generatedKey = '';
+  let flag = 0;
+  let message = '';
+ 
+  if (idUser === undefined) {
+    res.status(401).send("Unauthorized. please log in.");
+    return;
+    
+    
+  } else {
 
+    generatedKey = generateRandomString();
 
-  let user = users[id];
-  const generatedKey = generateRandomString();
-  urlDatabase[generatedKey] = {
-    longURL: req.body.longURL,
-    userID: id
-  };
-  const templateVars = { id: generatedKey, longURL: req.body.longURL, user: user };
+    urlDatabase[generatedKey] = {
+      longURL: req.body.longURL,
+      userID: idUser
+    };
+
+  }
+
+  const templateVars = { id: generatedKey, longURL: urlDatabase[generatedKey].longURL, user: user, flag: flag, message: message, idUser:idUser};
+
   res.render("urls_show", templateVars);
+
 });
 
 // POST /login
@@ -253,7 +328,7 @@ app.post("/register", (req, res) => {
   users[generatedUserID] = { id: generatedUserID, email: req.body.email, password: req.body.password };
 
 
-  console.log(users);
+  
   res.cookie('user_id', generatedUserID);
 
   res.redirect("/urls");
@@ -269,22 +344,54 @@ app.post("/register", (req, res) => {
 app.post("/urls/edit/:id", (req, res) => {
   const id = req.params.id; // Retrieve the ID from the request parameters
   const newURL = req.body.longURL;
-  let id_user = req.cookies.user_id;
-  let user = users[id_user];
+  let idUser = req.cookies.user_id;
+  let user = users[idUser];
+  let flag = 0;
+  let message = '';
 
   urlDatabase[id].longURL = newURL;
 
-  const templateVars = { id: id, longURL: newURL, user: user };
+ 
+
+  const templateVars = { id: id, longURL: urlDatabase[id].longURL, user: user, flag: flag, message: message, idUser:idUser};
   res.render("urls_show", templateVars);
 });
 
 // POST /urls/:id/delete
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];
   let id = req.cookies.user_id;
   let user = users[id];
-  const templateVars = { urls: urlDatabase, user: user };
+  let flag = 0;
+  let message = " ";
+
+  // if not logged in
+  if (id === undefined) {
+    res.status(403);
+    message = "Can't Delete!. Not Logged in!!";
+    flag = 1;
+  }
+
+  else {
+    if (!verifyIfIdExists(req.params.id, urlDatabase)) {
+      flag = 1;
+      message = "Id does not exist!";
+    }
+
+    else { delete urlDatabase[req.params.id]; }
+  };
+
+
+  let userUrlsDatabase = urlsForUser(id, urlDatabase);
+  const templateVars = {
+    urls: userUrlsDatabase,
+    user: user,
+    id: id,
+    message: message,
+    flag: flag
+  };
+
   res.render("urls_index", templateVars);
+
 });
 
 
