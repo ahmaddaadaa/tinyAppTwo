@@ -4,9 +4,8 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-<img src="images/tinyapp.png" width = 80px >
 
-!["homepage when not logged in"](images/tinyapp.png)
+!["homepage when not logged in"](https://github.com/ahmaddaadaa/tinyapp/blob/master/images/tinyapp.png)
 
 
 
