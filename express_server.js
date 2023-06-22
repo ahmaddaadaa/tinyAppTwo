@@ -150,7 +150,6 @@ app.get("/urls/new", (req, res) => {
 app.get("/login", (req, res) => {
   if (req.session.user_id !== undefined) {
     res.redirect("/urls");
-    return;
   }
   res.render("login");
 });
