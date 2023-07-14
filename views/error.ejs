@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    
     <!-- Bootstrap CSS -->
     <link
       rel="stylesheet"
@@ -8,50 +14,16 @@
       integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
       crossorigin="anonymous"
     />
-    <title>URL - TinyApp Example</title>
+    <title>TinyApp</title>
   </head>
-  
+
   <body>
     <%- include('partials/_header') %>
-    <% if((idUser !== undefined) && (flag === 0)) { %>
-    <div class="card text-center">
-
-      <div class="card-header"></div>
-      <div class="card-body">
-        <h5 class="card-title">TinyURL for: <%= longURL %></h5>
-        <p class="card-text">
-          Short URL ID: <a href="/urls/<%= id %>"><%= id %></a>
-        </p>
-      </div>
-      <div class="card-footer text-muted"></div>
-      <!-- edit box -->
-
-      
-
-      <div class="card-header" style="padding: 0%; ">
-        <h4 style="color: rgb(116, 115, 115)">Edit</h4>
-        <p class="card-text">
-
-
-          <form  action="/urls/edit/<%= id %>" method="POST">
-            <div class="form-group mb-2">
-              <label for="longURL">New URL:</label>
-              <input name="longURL"
-                placeholder="http://"
-              />
-              <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-          </form>
-
-
-        </p>
-      </div>
-      
-    </div>
-    <% } else { %>
-      <h3><%= message %></h3>
-      <% } %>
-
+    <main style="margin: 1em;">
+        <div class="alert alert-danger" role="alert">
+           <%= message %>
+        </div>
+    </main>
     <!-- Bootstrap JS -->
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

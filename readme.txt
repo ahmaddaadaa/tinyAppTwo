@@ -5,8 +5,7 @@ TinyApp is a full stack web application built with Node and Express that allows 
 ## Final Product
 
 
-!["homepage"](https://github.com/ahmaddaadaa/tinyapp/blob/master/docs/homepage.png?raw=true)
-
+!["homepage"](https://github.com/ahmaddaadaa/tinyapp/blob/master/docs/homePage.png?raw=true)
 
 
 

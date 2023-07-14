@@ -1,5 +1,3 @@
-
-
 const getUserByEmail = function(email, database) {
   // lookup magic...
   for(let key in database){
