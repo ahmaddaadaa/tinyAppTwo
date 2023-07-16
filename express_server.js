@@ -2,9 +2,13 @@ const express = require("express");
 const morgan = require('morgan');
 const bcrypt = require("bcryptjs");
 const cookieSession = require('cookie-session');
+const helpers = require('./helpers');
+const { urlDatabase, users } = require('./database');
 
 const app = express();
 const PORT = 8080; // default port 8080
+
+let alarmFlag = 0; // used to display alarm messeges 
 
 app.set("view engine", "ejs"); // set us a view engine for our EJS files 
 
@@ -18,71 +22,7 @@ app.use(cookieSession({
 }));
 
 
-const urlDatabase = {
-  b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "aJ48lW",
-  },
-  i3BoGr: {
-    longURL: "https://www.google.ca",
-    userID: "aJ48lW",
 
-  },
-
-  shortId: {
-    longURL: "ahmaddaadaa.ca",
-    userID: "userRandomID",
-  }
-
-};
-
-const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
-  },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk",
-  },
-};
-
-
-
-// function checks if an Id exists in the URLs Database
-const verifyIfIdExists = function(id, database) {
-  for (const key in database) {
-    if (key === id) {
-      return true;
-    }
-  }
-};
-
-// function to generate String ID
-const generateRandomString = function() {
-  return Math.random().toString(36).substring(2, 8);
-};
-
-// function returns email of a user
-const getUserByEmail = function(email) {
-  for (const userId in users) {
-    if (users[userId].email === email) {
-      return true;
-    }
-  }
-};
-
-const urlsForUser = function(id, database) {
-  let result = {};
-  for (let key in database) {
-    if (database[key].userID === id)
-      result[key] = database[key].longURL;
-
-  };
-  return result;
-};
 
 /////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////
@@ -92,6 +32,7 @@ const urlsForUser = function(id, database) {
 
 // GET /
 app.get("/", (req, res) => {
+  alarmFlag = 0;
   if (req.session.user_id) {
     res.redirect("/urls");
   } else {
@@ -101,34 +42,29 @@ app.get("/", (req, res) => {
 
 // GET /urls
 app.get("/urls", (req, res) => {
+  alarmFlag = 0;
   let id = req.session.user_id;
-  let message = " ";
-  let flag = 0;
-  let userUrlsDatabase = urlsForUser(id, urlDatabase);
+  let userUrlsDatabase = helpers.urlsForUser(id, urlDatabase);
   const user = users[id];
+
   // if not logged in:
   if (id === undefined) {
-    res.status(403);
-    message = "Can't show the URLs page. Login or Register first!";
-    flag = 1;
+    return res.status(404).render("error", { user, message: "Can't show the URLs page. Login or Register first!" });
   }
 
-  else {
-    if (Object.values(userUrlsDatabase).length === 0) {
-      flag = 1;
-      message = "No URLs found!! Start creating new ones!";
-    }
+  // logged in 
+  if (Object.values(userUrlsDatabase).length === 0) {
+    return res.status(404).render("error", { user, message: "No URLs found!! Start creating new ones!" });
+  }
 
 
-  };
+
 
 
   const templateVars = {
     urls: userUrlsDatabase,
     user: user,
-    id: id,
-    message: message,
-    flag: flag
+    id: id
   };
   console.log("users :" + JSON.stringify(users));
   res.render("urls_index", templateVars);
@@ -142,9 +78,7 @@ app.get("/urls/new", (req, res) => {
     res.redirect("/login");
   }
   let user = users[id];
-  const templateVars = {
-    user: user
-  };
+  const templateVars = { user: user };
   res.render("urls_new", templateVars);
 });
 
@@ -153,7 +87,8 @@ app.get("/login", (req, res) => {
   if (req.session.user_id !== undefined) {
     res.redirect("/urls");
   }
-  res.render("login");
+  res.render("login", { alarmFlag });
+
 });
 
 
@@ -164,7 +99,7 @@ app.get("/register", (req, res) => {
     res.redirect("/urls");
     return;
   }
-  res.render("register");
+  res.render("register", { alarmFlag });
 });
 
 
@@ -178,17 +113,14 @@ app.get("/register", (req, res) => {
 app.get("/u/:id", (req, res) => {
   let idFound = null;
   let idUser = req.session.user_id;
+  const user = users[idUser];
 
-  if (idUser === undefined) {
-    return res.status(403).render("error", { user, message: "Can't show the URLs page. Login or Register first!" });
-  }
 
-  console.log("URLs Database!!", urlDatabase);
   for (let key in urlDatabase) {
-    console.log("key",key);
+    console.log("key", key);
     if (key === req.params.id) idFound = key;
   }
-  console.log("idFound",idFound);
+
   if (idFound === null) {
     res.status(400).send("Not found!! Double check the Short Link Id.");
     return;
@@ -203,15 +135,14 @@ app.get("/urls/:id", (req, res) => {
 
   let idUser = req.session.user_id;
   let id = req.params.id;
-  let message = "";
   let user = users[idUser];
-  let flag = 0;
+
 
   if (idUser === undefined) {
     return res.status(403).render("error", { user, message: "Can't show the URLs page. Login or Register first!" });
   }
 
-  if (!verifyIfIdExists(id, urlDatabase)) {
+  if (!helpers.verifyIfIdExists(id, urlDatabase)) {
     return res.status(403).render("error", { user, message: "the URL id does not exist" });
   }
 
@@ -219,7 +150,12 @@ app.get("/urls/:id", (req, res) => {
     return res.status(403).render("error", { user, message: "You don't own the URL" });
   }
 
-  const templateVars = { id: id, longURL: urlDatabase[id].longURL, user: user, message: message, flag: flag, idUser: idUser };
+  const templateVars = {
+    id: id,
+    longURL: urlDatabase[id].longURL,
+    user: user,
+    idUser: idUser
+  };
 
 
   res.render("urls_show", templateVars);
@@ -241,27 +177,27 @@ app.get("/urls/:id", (req, res) => {
 // POST /urls
 app.post("/urls", (req, res) => {
   let idUser = req.session.user_id;
-  //let id = req.params.id;
   let user = users[idUser];
   let generatedKey = '';
-  let flag = 0;
-  let message = '';
 
   if (idUser === undefined) {
     return res.status(401).render("error", { user, message: "Can't show the URLs page. Login or Register first!" });
   }
 
-  generatedKey = generateRandomString();
+  generatedKey = helpers.generateRandomString();
 
   urlDatabase[generatedKey] = {
     longURL: req.body.longURL,
     userID: idUser
   };
 
-  console.log("new url is Created!!", urlDatabase);
+  const templateVars = {
+    id: generatedKey,
+    longURL: urlDatabase[generatedKey].longURL,
+    user: user,
+    idUser: idUser
+  };
 
-  const templateVars = { id: generatedKey, longURL: urlDatabase[generatedKey].longURL, user: user, flag: flag, message: message, idUser: idUser };
-  
   res.render("urls_show", templateVars);
 
 });
@@ -271,10 +207,9 @@ app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
-  // we did not get a username and a passward??
   if (!email || !password) {
-    res.status(400).send('Please provide a username and a password');
-    return;
+    alarmFlag = 1;
+    return res.status(404).render("login", { alarmFlag, message: "Please provide a username and a password!" });
   }
 
   // lookup username and password:
@@ -289,23 +224,23 @@ app.post("/login", (req, res) => {
   }
   // did we not found the user?
   if (!founduser) {
-    res.status(403).send('no user with that username found');
-    return;
+    alarmFlag = 1;
+    return res.status(404).render("login", { alarmFlag, message: "No user with that username is found!" });
   }
 
- 
+
 
   if (bcrypt.compareSync(password, founduser.password) === false) {
     console.log("Password: " + password + ". encrypted: " + founduser.password);
     console.log("Password matched?? :" + bcrypt.compareSync(password, founduser.password));
-    res.status(403).send('passward do not match');
-    return;
+    alarmFlag = 1;
+    return res.status(401).render("login", { alarmFlag, message: "passward do not match!" });
 
   }
 
   //happy path!! the user and password found
 
-  
+
   req.session.user_id = founduser.id;
 
   // redirect to /urls
@@ -331,18 +266,18 @@ app.post("/register", (req, res) => {
 
   // check if entries are empty strings
   if (email === '' || password === '') {
-    res.status(400).send("Email or password cannot be empty");
-    return;
+    alarmFlag = 1;
+    return res.status(400).render("register", { alarmFlag, message: "Email or password cannot be empty" });
   }
 
   // Check if email already exists
-  if (getUserByEmail(email)) {
-    res.status(400).send("Email already exists");
-    return;
+  if (helpers.getUserByEmail(email, users)) {
+    alarmFlag = 1;
+    return res.status(400).render("register", { alarmFlag, message: "Email already exists" });
   }
 
 
-  const generatedUserID = generateRandomString();
+  const generatedUserID = helpers.generateRandomString();
   users[generatedUserID] = { id: generatedUserID, email: req.body.email, password: bcrypt.hashSync(req.body.password, 10) };
 
 
@@ -365,15 +300,13 @@ app.post("/urls/edit/:id", (req, res) => {
   const newURL = req.body.longURL;
   let idUser = req.session.user_id;
   let user = users[idUser];
-  let flag = 0;
-  let message = '';
-
   urlDatabase[id].longURL = newURL;
+
   if (idUser === undefined) {
     return res.status(403).render("error", { user, message: "Can't show the URLs page. Login or Register first!" });
   }
 
-  if (!verifyIfIdExists(id, urlDatabase)) {
+  if (!helpers.verifyIfIdExists(id, urlDatabase)) {
     return res.status(403).render("error", { user, message: "the URL id does not exist" });
   }
 
@@ -388,15 +321,13 @@ app.post("/urls/edit/:id", (req, res) => {
 app.post("/urls/:id/delete", (req, res) => {
   let id = req.session.user_id;
   let user = users[id];
-  let flag = 0;
-  let message = " ";
 
   // if not logged in
   if (id === undefined) {
     return res.status(403).render("error", { user, message: "Can't Delete!. Not Logged in!!" });
   }
 
-  if (!verifyIfIdExists(req.params.id, urlDatabase)) {
+  if (!helpers.verifyIfIdExists(req.params.id, urlDatabase)) {
     return res.status(403).render("error", { user, message: "Id does not exist!" });
   }
 
