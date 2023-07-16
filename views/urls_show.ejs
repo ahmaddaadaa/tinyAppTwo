@@ -13,7 +13,7 @@
   
   <body>
     <%- include('partials/_header') %>
-    <% if((idUser !== undefined) && (flag === 0)) { %>
+    <% if((idUser !== undefined) ) { %>
     <div class="card text-center">
 
       <div class="card-header"></div>
@@ -48,10 +48,8 @@
       </div>
       
     </div>
-    <% } else { %>
-      <h3><%= message %></h3>
-      <% } %>
-
+    <% }  %>
+      
     <!-- Bootstrap JS -->
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

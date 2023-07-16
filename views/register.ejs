@@ -3,8 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <!-- Bootstrap CSS -->
+   <link
+   rel="stylesheet"
+   href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+   integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
+   crossorigin="anonymous"
+ />
   <title>Document</title>
 </head>
+
 <body>
   <h1>Register here:</h1>
   <form action="/register" style="margin: 10px;" method="POST">
@@ -18,6 +26,19 @@
     </div>
     <button type="submit" style="margin: 10px;">Register</button>
   </form>
+
+  <% if(alarmFlag === 1){ %>
+
+    <div class="alert alert-danger" role="alert" >
+      <%= message %>
+   </div>
+  
+  <% } %>
+
+  <div style="margin: 20px,20px,20px 20px;">
+    <a href="/urls" >return to homepage</a>
+  </div>
+
 </body>
 </html>
 
