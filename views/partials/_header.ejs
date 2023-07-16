@@ -23,17 +23,12 @@
       <p class="navbar-nav" style="margin-right: 10px;">Please login or register!</p>
       <a href="/login" class="btn btn-primary">Login</a>
       <a href="/register" class="btn btn-warning">Register</a>
-      <!-- <form action="/login" style="margin-right: 10px;" method="GET">
-          <button type="submit">Login</button>
-        </form>
-        <form action="/register" method="GET">
-          <button type="submit">Register</button>
-      </form> -->
+
     
     <% } else { %>
         <p class="navbar-nav" style="margin-right: 10px;">Logged in as: <%= user.email %>!</p>
         <form action="/logout" method="POST">
-          <button type="submit" style="margin-right: 10px;">Logout</button>
+          <button type="submit" style="margin-right: 10px;" class="btn btn-danger">Logout</button>
         </form>
     <% } %>
         
