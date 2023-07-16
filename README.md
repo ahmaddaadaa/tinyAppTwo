@@ -4,13 +4,18 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-
+### main page:
+***
 !["homepage"](https://github.com/ahmaddaadaa/tinyapp/blob/master/docs/homePage.png?raw=true)
-
+***
+### Registeration page:
+***
 !["registerMain"](https://github.com/ahmaddaadaa/tinyapp/blob/master/docs/registerMain.png?raw=true)
-
+***
+### Account display:
+***
 !["loggedIn"](https://github.com/ahmaddaadaa/tinyapp/blob/master/docs/loggedIn.png?raw=true)
-
+***
 
 
 
